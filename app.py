@@ -1,7 +1,12 @@
 import streamlit as st
 import pandas as pd
-from copulas.multivariate import GaussianMultivariate
+from faker import Faker
 import io
+import random
+import re
+
+# Initialize Faker
+fake = Faker()
 
 # Title for the app
 st.title("Synthetic Data Generator")
@@ -18,6 +23,38 @@ num_samples = st.sidebar.number_input(
 # Button to trigger synthetic data generation
 generate_button = st.sidebar.button("Generate Synthetic Data")
 
+def generate_synthetic_data(real_data, num_samples):
+    synthetic_data = []
+
+    for _ in range(num_samples):
+        row = []
+        for column in real_data.columns:
+            sample_value = real_data[column].dropna().iloc[0] if not real_data[column].dropna().empty else ""
+
+            if real_data[column].dtype == 'object':
+                if re.search(r'\d', sample_value) and re.search(r'[a-zA-Z]', sample_value):
+                    # Alphanumeric pattern
+                    row.append(fake.bothify(text='??-####'))
+                elif re.search(r'\$', sample_value):
+                    # Dollar amount pattern
+                    row.append(f"${random.uniform(1, 1000):.2f}")
+                else:
+                    # Generic string
+                    row.append(fake.word())
+            elif real_data[column].dtype in ['int64', 'float64']:
+                # Generate random numbers for numeric columns
+                row.append(fake.random_number(digits=5))
+            else:
+                # Default to random alphanumeric strings for any other types
+                row.append(fake.bothify(text='??-####'))
+        
+        synthetic_data.append(row)
+
+    # Create DataFrame with the same columns as the original data
+    synthetic_df = pd.DataFrame(synthetic_data, columns=real_data.columns)
+
+    return synthetic_df
+
 if uploaded_file:
     # Read the uploaded CSV file
     real_data = pd.read_csv(uploaded_file)
@@ -27,21 +64,15 @@ if uploaded_file:
     if generate_button:
         st.write("### Generating Synthetic Data...")
 
-        # Initialize the Gaussian copula model
-        model = GaussianMultivariate()
-
-        # Fit the model on the uploaded data
-        model.fit(real_data)
-
         # Generate synthetic data
-        synthetic_data = model.sample(num_samples)
+        synthetic_df = generate_synthetic_data(real_data, num_samples)
 
         st.write("### Synthetic Data Sample")
-        st.write(synthetic_data.head())
+        st.write(synthetic_df.head())
 
         # Convert synthetic data to CSV for download
         csv_buffer = io.BytesIO()
-        synthetic_data.to_csv(csv_buffer, index=False)
+        synthetic_df.to_csv(csv_buffer, index=False)
         csv_buffer.seek(0)
 
         # Create a download button
