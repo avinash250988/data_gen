@@ -31,26 +31,53 @@ def generate_synthetic_data(real_data, num_samples):
         for column in real_data.columns:
             sample_value = real_data[column].dropna().iloc[0] if not real_data[column].dropna().empty else ""
 
-            if real_data[column].dtype == 'object':
-                if re.search(r'\d', sample_value) and re.search(r'[a-zA-Z]', sample_value):
-                    # Alphanumeric pattern
-                    row.append(fake.bothify(text='??-####'))
-                elif re.search(r'\$', sample_value):
-                    # Dollar amount pattern
-                    row.append(f"${random.uniform(1, 1000):.2f}")
-                else:
-                    # Generic string
-                    row.append(fake.word())
-            elif real_data[column].dtype in ['int64', 'float64']:
-                # Generate random numbers for numeric columns
-                row.append(fake.random_number(digits=5))
+            if "creditscore" in column.lower():
+                row.append(random.randint(300, 850))
+            elif "geography" in column.lower():
+                row.append(fake.country())
+            elif "gender" in column.lower():
+                row.append(random.choice(["Male", "Female"]))
+            elif "age" in column.lower():
+                row.append(random.randint(18, 100))
+            elif "tenure" in column.lower():
+                row.append(random.randint(0, 40))
+            elif "estimatedsalary" in column.lower():
+                row.append(round(random.uniform(20000, 150000), 2))
+            elif "city" in column.lower():
+                row.append(fake.city())
+            elif "state" in column.lower() or "region" in column.lower():
+                row.append(fake.state())
+            elif "country" in column.lower():
+                row.append(fake.country())
+            elif "name" in column.lower():
+                row.append(fake.name())
+            elif "email" in column.lower():
+                row.append(fake.email())
+            elif "address" in column.lower():
+                row.append(fake.address())
+            elif "phone" in column.lower():
+                row.append(fake.phone_number())
+            elif "company" in column.lower():
+                row.append(fake.company())
+            elif "job" in column.lower():
+                row.append(fake.job())
+            elif "credit card" in column.lower():
+                row.append(fake.credit_card_number())
+            elif "url" in column.lower():
+                row.append(fake.url())
+            elif "ip" in column.lower():
+                row.append(fake.ipv4())
+            elif "date" in column.lower():
+                row.append(fake.date_between(start_date='-30y', end_date='today'))
+            elif "postcode" in column.lower() or "zip" in column.lower():
+                row.append(fake.postcode())
+            elif "$" in str(sample_value):
+                row.append(f"${round(random.uniform(0, 100000), 2)}")
             else:
-                # Default to random alphanumeric strings for any other types
-                row.append(fake.bothify(text='??-####'))
+                row.append(fake.word())
         
         synthetic_data.append(row)
 
-    # Create DataFrame with the same columns as the original data
     synthetic_df = pd.DataFrame(synthetic_data, columns=real_data.columns)
 
     return synthetic_df
