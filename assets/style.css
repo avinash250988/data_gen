@@ -1,0 +1,18 @@
+
+.st-key-green button {
+    background-color: white;
+    color:#280071!important;
+   
+}
+
+.st-key-green button:hover{
+    border-color: #ffffff;
+    background-color: #ffffff;
+}
+
+
+.st-key-green button:focus:not(:active) {
+    border-color: #ffffff;
+    background-color: #ffffff;
+}
+
